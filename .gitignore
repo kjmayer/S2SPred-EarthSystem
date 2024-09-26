@@ -2,3 +2,4 @@
 /X_oldcode/*
 .ipynb_checkpoints/
 __pycache__/
+dask-worker*

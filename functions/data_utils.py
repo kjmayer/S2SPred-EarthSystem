@@ -5,9 +5,6 @@ from numpy.polynomial import polynomial
 import os
 import matplotlib.pyplot as plt
 
-import torch
-from torch import nn
-
 def is_month(data, months):
     i_timedim = np.where(np.asarray(data.dims) == 'time')[0][0]
     if i_timedim == 0:
@@ -57,60 +54,4 @@ def detrend_members(data, ensmean_data, npoly=3):
     detrend_xr = detrend_xr.sortby('time')
     
     return detrend_xr
-    
-
-class NeuralNetwork(nn.Module):
-
-    def __init__(self):
-        super().__init__()
-        self.flatten = nn.Flatten()
-        self.nnstack = nn.Sequential(
-            nn.Linear(nlat*nlon,nnodes[0]),
-            nn.ReLU(),
-            nn.Linear(nnodes[0],nnodes[1]),
-            nn.Relu(),
-            nn.Linear(nnodes[1],nnodes[2]),
-        )
-
-    def forward(self,x):
-        x = self.flatten(x)
-        logits = self.nnstack(x)
-        return logits
-
-
-def train(dataloader, model, loss_fn, optimizer):
-    size = len(dataloader.dataset)
-    model.train()
-
-    for batch, (X,y) in enumerate(dataloader):
-        X, y = X.to(device), y.to(device)
-
-        # compute prediction error/loss
-        pred = model(X)
-        loss = loss_fn(pred, y)
-
-        # backpropagation
-        loss.backward()
-        optimizer.step()
-        optimizer.zero_grad()
-
-        if batch % 5 == 0:
-            loss, current = loss.iten(), (batch + 1) * len(X)
-            print(f"loss: {loss:>7f} [{current:>5d}/{size:>5d}]")
-
-
-def test(dataloader, model, loss_fn):
-    size = len(dataloader.dataset)
-    num_batches = len(dataloader)
-    model.eval() # remove batch normalization, dropout, etc.
-    test_loss, correct = 0, 0
-
-    with torch.no_grad():
-        for X, y in dataloader:
-            X, y = X.to(device), y.to(device)
-            pred = model(X)
-            test_loss += loss_fn(pred, y).item()
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
-
-
 
