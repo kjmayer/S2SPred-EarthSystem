@@ -1,0 +1,70 @@
+{
+    "exp_name": "exp_foo",
+    "device": "cpu",
+    "seed": 22,
+
+    "data_loader": {
+        "base_dir": "/glade/derecho/scratch/kjmayer/DATA/CESM2-LE/HIST/",
+        "atm_var": "TREFHT",
+        "lnd_var": "SOILWATER_10CM",
+        "ocn_var": "TS",
+        "ens_mems": ["011","012","013","014","015","016","017","018","019","020"],
+        "input_size": 1000,
+        "output_size": 1000,
+        "batch_size": 256
+    },
+
+    "arch_atm": {
+        "type": "ann",
+        "hiddens_block_in": [1,100],
+        "hiddens_block": [100, 100],
+        "hiddens_block_act": ["ReLU", "ReLU"],
+        "hiddens_final": 2,
+        "hiddens_final_in": 100,
+        "hiddens_final_act": false
+    },
+
+    "arch_lnd": {
+        "type": "ann",
+        "hiddens_block_in": [1,100],
+        "hiddens_block": [100, 100],
+        "hiddens_block_act": ["ReLU", "ReLU"],
+        "hiddens_final": 2,
+        "hiddens_final_in": 100,
+        "hiddens_final_act": false
+    },
+
+    "arch_ocn": {
+        "type": "ann",
+        "hiddens_block_in": [1,100],
+        "hiddens_block": [100, 100],
+        "hiddens_block_act": ["ReLU", "ReLU"],
+        "hiddens_final": 2,
+        "hiddens_final_in": 100,
+        "hiddens_final_act": false
+    },
+
+    "optimizer": {
+        "type": "Adam",
+        "args":{
+            "lr": 0.00001,
+            "weight_decay": 0,
+            "amsgrad": false
+        }
+    },
+    
+    "criterion": "MSELoss",
+
+     "metrics": ["MAE"],
+
+    "trainer": {
+        "max_epochs": 30,
+        "save_dir": "saved_models/",
+        "early_stopping":{
+            "args":{
+                "patience": 20,
+                "min_delta": 0.01
+            }
+        }
+    }
+}
