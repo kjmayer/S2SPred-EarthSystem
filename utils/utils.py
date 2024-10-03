@@ -47,7 +47,7 @@ def get_config(exp_name):
 
     basename = "exp_"
 
-    with open("config_" + exp_name[len(basename) :] + ".json") as f:
+    with open("config/config_" + exp_name[len(basename) :] + ".json") as f:
         config = json.load(f)
 
     assert (

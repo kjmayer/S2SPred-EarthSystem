@@ -1,5 +1,5 @@
 {
-    "exp_name": "exp_foo",
+    "exp_name": "exp_1",
     "device": "cpu",
     "seed": 22,
 
@@ -8,18 +8,33 @@
         "atm_var": "TREFHT",
         "lnd_var": "SOILWATER_10CM",
         "ocn_var": "TS",
-        "ens_mems": ["011","012","013","014","015","016","017","018","019","020"],
-        "input_size": 1000,
-        "output_size": 1000,
-        "batch_size": 256
+        "anommems_finames": [
+            "_anom_011_1950-2014.nc",
+            "_anom_012_1950-2014.nc",
+            "_anom_013_1950-2014.nc",
+            "_anom_014_1950-2014.nc",
+            "_anom_015_1950-2014.nc",
+            "_anom_016_1950-2014.nc",
+            "_anom_017_1950-2014.nc",
+            "_anom_018_1950-2014.nc",
+            "_anom_019_1950-2014.nc",
+            "_anom_020_1950-2014.nc"
+        ],
+        "climo_finame": ["_doymean_ensmean011-020_1950-2014.nc"],
+        "batch_size": 32
     },
 
     "arch_atm": {
         "type": "ann",
+        "circular_padding": [5, 5, 0, 0],
+        "n_inputchannel": 2,
+        "filters": [32, 32],
+        "kernel_size": [5, 3],
+        "cnn_act": ["ReLU", "ReLU"],
         "hiddens_block_in": [1,100],
         "hiddens_block": [100, 100],
         "hiddens_block_act": ["ReLU", "ReLU"],
-        "hiddens_final": 2,
+        "hiddens_final": 2448,
         "hiddens_final_in": 100,
         "hiddens_final_act": false
     },
