@@ -25,13 +25,13 @@
     },
 
     "arch_atm": {
-        "type": "ann",
+        "type": "cnn",
         "circular_padding": [5, 5, 0, 0],
         "n_inputchannel": 2,
-        "filters": [32, 32],
-        "kernel_size": [5, 3],
+        "filters": [32, 32, 32],
+        "kernel_size": [5, 3, 3],
         "cnn_act": ["ReLU", "ReLU"],
-        "hiddens_block_in": [1,100],
+        "hiddens_block_in": [7680,100],
         "hiddens_block": [100, 100],
         "hiddens_block_act": ["ReLU", "ReLU"],
         "hiddens_final": 2448,

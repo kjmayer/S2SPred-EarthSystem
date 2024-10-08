@@ -28,6 +28,12 @@ def dense_couplet(in_features, out_features, act_fun=False, *args, **kwargs):
             getattr(torch.nn, act_fun)(),
         )
 
+def dense_lazy_couplet(out_features, act_fun, *args, **kwargs):
+    return torch.nn.Sequential(
+        torch.nn.LazyLinear(out_features=out_features, bias=True),
+        getattr(torch.nn, act_fun)(),
+    )
+
 def conv_couplet(in_channels, out_channels, act_fun, *args, **kwargs):
     return torch.nn.Sequential(
         torch.nn.Conv2d(in_channels, out_channels, *args, **kwargs),
@@ -35,14 +41,21 @@ def conv_couplet(in_channels, out_channels, act_fun, *args, **kwargs):
         torch.nn.MaxPool2d(kernel_size=(2, 2), ceil_mode=True),
     )
 
-def dense_block(out_features, act_fun, in_features):
-    block = [
-        dense_couplet(in_features, out_features, act_fun)
-        for in_features, out_features, act_fun in zip(
-            [*in_features], [*out_features], [*act_fun]
-        )
-    ]
-    return torch.nn.Sequential(*block)
+def dense_block(out_features, act_fun, in_features=None):
+    if in_features is None:
+        block = [
+            dense_lazy_couplet(out_channels, act_fun)
+            for out_channels, act_fun in zip([*out_features], [*act_fun])
+        ]
+        return torch.nn.Sequential(*block)
+    else:
+        block = [
+            dense_couplet(in_features, out_features, act_fun)
+            for in_features, out_features, act_fun in zip(
+                [*in_features], [*out_features], [*act_fun]
+            )
+        ]
+        return torch.nn.Sequential(*block)
 
 def conv_block(in_channels, out_channels, act_fun, kernel_size):
     block = [
@@ -55,6 +68,7 @@ def conv_block(in_channels, out_channels, act_fun, kernel_size):
         )
     ]
     return torch.nn.Sequential(*block)
+    
 class NeuralNetwork(BaseModel):
 
     def __init__(self, config):
@@ -73,12 +87,12 @@ class NeuralNetwork(BaseModel):
 
         # Flat layer
         self.flat = torch.nn.Flatten(start_dim=1)
-        print(self.flat.size())
+
         # Input Dense blocks
         self.denseblock = dense_block(
             config["hiddens_block"],
             config["hiddens_block_act"],
-            in_features=config["hiddens_block_in"],
+            #in_features=config["hiddens_block_in"],
         )
 
         # Final dense layer
@@ -89,7 +103,10 @@ class NeuralNetwork(BaseModel):
         )
 
     def forward(self,x):
-
+        
+        x = self.pad_lons(x)
+        x = self.conv_block(x)
+        x = self.flat(x)
         x = self.denseblock(x)
         x = self.output(x)
         

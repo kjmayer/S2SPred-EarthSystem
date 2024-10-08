@@ -63,6 +63,8 @@ class GetData():
                 self.trainmax = self.datastd.max('s')
             return((self.datastd - self.trainmin)/(self.trainmax - self.trainmin))       
 
+    def __len__(self):
+        return len(self.datanorm)
     
     def __getitem__(self,idx):
         if not self.climo:
@@ -78,14 +80,15 @@ class GetData():
             return self.datanorm
 
 ############################################
-class MakeDataset(torch.utils.data.Dataset):
+class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, X, y):
-        self.X = torch.tensor(torch.from_numpy(X), dtype = torch.float32)#.unsqueeze(1)
-        self.y = torch.tensor(torch.from_numpy(X), dtype = torch.float32) # unsqueeze?
+        self.X = torch.tensor(X, dtype = torch.float32)
+        self.y = torch.tensor(y, dtype = torch.float32)
     
     def __len__(self):
         return len(self.X)
     
     def __getitem__(self, idx):
-        # return  torch.utils.data.TensorDataset(self.X,self.y)
-        return self.X,self.y
+        input = self.X[idx]
+        target = self.y[idx]
+        return input, target
