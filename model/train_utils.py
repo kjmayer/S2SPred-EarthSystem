@@ -111,7 +111,42 @@ class NeuralNetwork(BaseModel):
         x = self.output(x)
         
         return x
+        
+    
+    def predict(self, dataset=None, dataloader=None, batch_size=32, device="gpu"):
 
+        if (dataset is None) & (dataloader is None):
+            raise ValueError("both dataset and dataloader cannot be none.")
+
+        if (dataset is not None) & (dataloader is not None):
+            raise ValueError("dataset and dataloader cannot both be defined. choose one.")
+
+        if dataset is not None:
+            dataloader = torch.utils.data.DataLoader(
+                dataset,
+                batch_size=batch_size,
+                shuffle=False,
+                drop_last=False,
+                )
+
+        self.to(device)
+        self.eval()
+        with torch.inference_mode():
+
+            output = None
+            for batch_idx, (data, target) in enumerate(dataloader):
+                input, target = (
+                    data.to(device),
+                    target.to(device),
+                    )
+
+                out = self(input).to("cpu").numpy() # this has to be "cpu" to convert to a numpy
+                if output is None:
+                    output = out
+                else:
+                    output = np.concatenate((output, out), axis=0)
+
+        return output
 
 
 

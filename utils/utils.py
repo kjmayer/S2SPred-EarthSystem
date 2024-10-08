@@ -20,16 +20,28 @@ def prepare_device(device="gpu"):
     setup GPU device if available. get gpu device indices which are used for DataParallel
     """
     if device == "gpu":
-        if torch.backends.mps.is_available():
-            device = torch.device("mps")
-        else:
-            print("Warning: MPS device not found." "Training will be performed on CPU.")
-            device = torch.device("cpu")
+        print('device available :', torch.cuda.is_available())
+        print('device count: ', torch.cuda.device_count())
+        print('current device: ',torch.cuda.current_device())
+        print('device name: ',torch.cuda.get_device_name())
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+        if device.type == 'cuda':
+            print(torch.cuda.get_device_name(0))
+            print('Memory Usage:')
+            print('Allocated:', round(torch.cuda.memory_allocated(0)/1024**3,1), 'GB')
+            print('Cached:   ', round(torch.cuda.memory_reserved(0)/1024**3,1), 'GB')
+        
+        if not torch.cuda.is_available():
+            print("Warning: Training will be performed on CPU.")
+            
     elif device == "cpu":
+        print("Training will be performed on CPU.")
         device = torch.device("cpu")
     else:
         raise NotImplementedError
 
+    print('using device: ', device)
     return device
 
 

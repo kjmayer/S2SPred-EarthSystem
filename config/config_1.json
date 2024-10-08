@@ -1,6 +1,6 @@
 {
     "exp_name": "exp_1",
-    "device": "cpu",
+    "device": "gpu",
     "seed": 22,
 
     "data_loader": {
@@ -77,8 +77,8 @@
         "save_dir": "saved_models/",
         "early_stopping":{
             "args":{
-                "patience": 20,
-                "min_delta": 0.01
+                "patience": 10,
+                "min_delta": 0.001
             }
         }
     }
