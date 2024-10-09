@@ -8,6 +8,7 @@
         "atm_var": "TREFHT",
         "lnd_var": "SOILWATER_10CM",
         "ocn_var": "TS",
+        "lead": [1,7,14,21,28,35],
         "anommems_finames": [
             "_anom_011_1950-2014.nc",
             "_anom_012_1950-2014.nc",
@@ -21,19 +22,19 @@
             "_anom_020_1950-2014.nc"
         ],
         "climo_finame": ["_doymean_ensmean011-020_1950-2014.nc"],
-        "batch_size": 32
+        "batch_size": 128
     },
 
     "arch_atm": {
         "type": "cnn",
         "circular_padding": [5, 5, 0, 0],
         "n_inputchannel": 2,
-        "filters": [32, 32, 32],
-        "kernel_size": [5, 3, 3],
+        "filters": [32,32], 
+        "kernel_size": [5,5],
         "cnn_act": ["ReLU", "ReLU"],
         "hiddens_block_in": [7680,100],
-        "hiddens_block": [100, 100],
-        "hiddens_block_act": ["ReLU", "ReLU"],
+        "hiddens_block": [100],
+        "hiddens_block_act": ["ReLU"],
         "hiddens_final": 2448,
         "hiddens_final_in": 100,
         "hiddens_final_act": false
@@ -68,9 +69,9 @@
         }
     },
     
-    "criterion": "MSELoss",
+    "criterion": "L1Loss",
 
-     "metrics": ["MAE"],
+     "metrics": ["MAE", "MSELoss"],
 
     "trainer": {
         "max_epochs": 30,

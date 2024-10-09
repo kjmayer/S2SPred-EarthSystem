@@ -16,11 +16,14 @@ def concat_input(X,Y,dim_name='features'):
     inputs = xr.concat([X,Y],dim=dim_name).transpose('s',dim_name, 'lat', 'lon')
     return inputs
         
-class GetData():
+class GetXData():
     
     def __init__(self, dir, var, finames,
                  train=False,
-                 trainmean=None, trainstd=None, trainmin=None, trainmax=None,
+                 trainmean=None,
+                 trainstd=None,
+                 trainmin=None,
+                 trainmax=None,
                  climo=False):
         
         self.climo = climo
@@ -78,6 +81,49 @@ class GetData():
             return self.datanorm, self.climomin, self.climomax
         else:
             return self.datanorm
+
+class GetYData():
+    
+    def __init__(self, dir, var, finames,
+                 train=False,
+                 trainmean=None,
+                 trainstd=None):
+        
+        self.train = train
+        self.var = var
+
+        if not self.train:
+            self.trainmean = trainmean
+            self.trainstd = trainstd
+        
+        if len(finames) > 1:
+            data = xr.open_mfdataset(_makefipath(dir, var, finames),
+                                     concat_dim='mem',
+                                     combine="nested",
+                                     parallel=True)[var]
+            data = data.stack(s=('mem', 'time')).transpose('s', 'lat', 'lon')
+            data = data.reset_index(['s'])
+        else:
+            data = xr.open_dataset(dir+var+'/'+var+finames[0])[var]
+        self.data = data
+    
+    def standardize(self):
+        if self.train:
+            self.trainmean = self.data.mean('s')
+            self.trainstd = self.data.std('s')
+        return (self.data - self.trainmean)/self.trainstd
+
+    def __len__(self):
+        return len(self.datanorm)
+    
+    def __getitem__(self, idx):
+        self.datastd = self.standardize()
+
+        ############################################
+        if self.train:
+            return self.datastd, self.trainmean, self.trainstd
+        else:
+            return self.datastd
 
 ############################################
 class CustomDataset(torch.utils.data.Dataset):
