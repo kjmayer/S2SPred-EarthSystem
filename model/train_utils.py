@@ -41,6 +41,14 @@ def conv_couplet(in_channels, out_channels, act_fun, *args, **kwargs):
         torch.nn.MaxPool2d(kernel_size=(2, 2), ceil_mode=True),
     )
 
+# not finished:
+# def upconv_couplet(in_channels, out_channels, act_fun, *args, **kwargs):
+#     return torch.nn.Sequential(
+#         torch.nn.ConvTranspose2d(in_channels, out_channels, *args, **kwargs),
+#         getattr(torch.nn, act_fun)(),
+#         torch.nn.UpsamplingBilinear2d(scale_factor=2),
+#     )
+
 def dense_block(out_features, act_fun, in_features=None):
     if in_features is None:
         block = [
@@ -68,6 +76,19 @@ def conv_block(in_channels, out_channels, act_fun, kernel_size):
         )
     ]
     return torch.nn.Sequential(*block)
+
+# not finished:
+# def upconv_block():
+#     block = [
+#         upconv_couplet()
+#         for in_channels, out_channels, act_fun, kernel_size in zip(
+#             [*in_channels],
+#             [*out_channels],
+#             [*act_fun],
+#             [*kernel_size],
+#         )
+#     ] 
+#     return torch.nn.Sequential(*block)
     
 class NeuralNetwork(BaseModel):
 

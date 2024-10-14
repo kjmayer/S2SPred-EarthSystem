@@ -22,40 +22,20 @@
             "_anom_020_1950-2014.nc"
         ],
         "climo_finame": ["_doymean_ensmean011-020_1950-2014.nc"],
-        "batch_size": 128
+        "batch_size": 512
     },
 
     "arch_atm": {
         "type": "cnn",
         "circular_padding": [5, 5, 0, 0],
         "n_inputchannel": 2,
-        "filters": [32,32], 
-        "kernel_size": [5,5],
-        "cnn_act": ["ReLU", "ReLU"],
+        "filters": [128,128,64,64], 
+        "kernel_size": [5,5,3,3],
+        "cnn_act": ["Tanh","Tanh","Tanh","Tanh"],
         "hiddens_block_in": [7680,100],
         "hiddens_block": [100],
-        "hiddens_block_act": ["ReLU"],
+        "hiddens_block_act": ["Tanh"],
         "hiddens_final": 2448,
-        "hiddens_final_in": 100,
-        "hiddens_final_act": false
-    },
-
-    "arch_lnd": {
-        "type": "ann",
-        "hiddens_block_in": [1,100],
-        "hiddens_block": [100, 100],
-        "hiddens_block_act": ["ReLU", "ReLU"],
-        "hiddens_final": 2,
-        "hiddens_final_in": 100,
-        "hiddens_final_act": false
-    },
-
-    "arch_ocn": {
-        "type": "ann",
-        "hiddens_block_in": [1,100],
-        "hiddens_block": [100, 100],
-        "hiddens_block_act": ["ReLU", "ReLU"],
-        "hiddens_final": 2,
         "hiddens_final_in": 100,
         "hiddens_final_act": false
     },
@@ -63,15 +43,15 @@
     "optimizer": {
         "type": "Adam",
         "args":{
-            "lr": 0.00001,
+            "lr": 0.001,
             "weight_decay": 0,
             "amsgrad": false
         }
     },
     
-    "criterion": "L1Loss",
+    "criterion": "weighted_l1_loss",
 
-     "metrics": ["MAE", "MSELoss"],
+     "metrics": ["MAE","MSE"],
 
     "trainer": {
         "max_epochs": 30,

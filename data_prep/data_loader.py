@@ -87,14 +87,22 @@ class GetYData():
     def __init__(self, dir, var, finames,
                  train=False,
                  trainmean=None,
-                 trainstd=None):
+                 trainstd=None,
+                 norm=False,
+                 trainmax=None,
+                 trainmin=None,
+                ):
         
         self.train = train
         self.var = var
-
+        self.norm = norm
+        
         if not self.train:
             self.trainmean = trainmean
             self.trainstd = trainstd
+        if not self.train and self.norm:
+            self.trainmax = trainmax
+            self.trainmin = trainmin
         
         if len(finames) > 1:
             data = xr.open_mfdataset(_makefipath(dir, var, finames),
@@ -107,23 +115,37 @@ class GetYData():
             data = xr.open_dataset(dir+var+'/'+var+finames[0])[var]
         self.data = data
     
-    def standardize(self):
+    def standardize(self): # this will error if only one finame (s needs to be time)
         if self.train:
             self.trainmean = self.data.mean('s')
             self.trainstd = self.data.std('s')
         return (self.data - self.trainmean)/self.trainstd
+        
+    def minmax_normalize(self): # this will error if only one finame (s needs to be time)
+        if self.train:
+            self.trainmin = self.datastd.min('s')
+            self.trainmax = self.datastd.max('s')
+        return((self.datastd - self.trainmin)/(self.trainmax - self.trainmin))  
 
     def __len__(self):
         return len(self.datanorm)
     
     def __getitem__(self, idx):
         self.datastd = self.standardize()
+        if self.norm:
+            self.datanorm = self.minmax_normalize()
 
         ############################################
-        if self.train:
+        if self.train and not self.norm:
             return self.datastd, self.trainmean, self.trainstd
-        else:
+        elif self.train and self.norm:
+            return self.datanorm, self.trainmean, self.trainstd, self.trainmax, self.trainmin
+        elif not self.train and not self.norm:
             return self.datastd
+        elif not self.train and self.norm:
+            return self.datanorm
+        else:
+            print('WARNING: nothing to return')
 
 ############################################
 class CustomDataset(torch.utils.data.Dataset):
