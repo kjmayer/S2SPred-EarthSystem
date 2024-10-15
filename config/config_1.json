@@ -22,30 +22,30 @@
             "_anom_020_1950-2014.nc"
         ],
         "climo_finame": ["_doymean_ensmean011-020_1950-2014.nc"],
-        "batch_size": 512
+        "batch_size": 32
     },
 
     "arch_atm": {
         "type": "cnn",
         "circular_padding": [5, 5, 0, 0],
-        "n_inputchannel": 2,
-        "filters": [128,128,64,64], 
-        "kernel_size": [5,5,3,3],
-        "cnn_act": ["Tanh","Tanh","Tanh","Tanh"],
-        "hiddens_block_in": [7680,100],
-        "hiddens_block": [100],
-        "hiddens_block_act": ["Tanh"],
+        "n_inputchannel": 1,
+        "filters": [8], 
+        "kernel_size": [5],
+        "cnn_act": ["ReLU"],
+        "hiddens_block_in": [29568,2448],
+        "hiddens_block": [2448],
+        "hiddens_block_act": ["ReLU"],
         "hiddens_final": 2448,
-        "hiddens_final_in": 100,
+        "hiddens_final_in": 2448,
         "hiddens_final_act": false
     },
 
     "optimizer": {
         "type": "Adam",
         "args":{
-            "lr": 0.001,
-            "weight_decay": 0,
-            "amsgrad": false
+            "lr": 1e-5,
+            "weight_decay": 0.005,
+            "amsgrad": true
         }
     },
     
@@ -58,7 +58,7 @@
         "save_dir": "saved_models/",
         "early_stopping":{
             "args":{
-                "patience": 10,
+                "patience": 3,
                 "min_delta": 0.001
             }
         }

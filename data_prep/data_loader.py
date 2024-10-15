@@ -31,8 +31,8 @@ class GetXData():
         self.var = var
 
         if not self.climo and not self.train:
-            self.trainmean = trainmean
-            self.trainstd = trainstd
+            # self.trainmean = trainmean
+            # self.trainstd = trainstd
             self.trainmin = trainmin
             self.trainmax = trainmax
         
@@ -49,11 +49,11 @@ class GetXData():
 
         # self.process()
     
-    def standardize(self):
-        if self.train:
-            self.trainmean = self.data.mean('s')
-            self.trainstd = self.data.std('s')
-        return (self.data - self.trainmean)/self.trainstd
+    # def standardize(self):
+    #     if self.train:
+    #         self.trainmean = self.data.mean('s')
+    #         self.trainstd = self.data.std('s')
+    #     return (self.data - self.trainmean)/self.trainstd
 
     def minmax_normalize(self):
         if self.climo:
@@ -62,21 +62,24 @@ class GetXData():
             return((self.data - self.climomin)/(self.climomax - self.climomin))
         else:
             if self.train:
-                self.trainmin = self.datastd.min('s')
-                self.trainmax = self.datastd.max('s')
-            return((self.datastd - self.trainmin)/(self.trainmax - self.trainmin))       
+                self.trainmin = self.data.min('s')
+                self.trainmax = self.data.max('s')
+            return((self.data - self.trainmin)/(self.trainmax - self.trainmin))
+            # self.trainmin = self.datastd.min('s')
+            # self.trainmax = self.datastd.max('s') 
+            # return((self.datastd - self.trainmin)/(self.trainmax - self.trainmin))       
 
     def __len__(self):
         return len(self.datanorm)
     
     def __getitem__(self,idx):
-        if not self.climo:
-            self.datastd = self.standardize()
+        # if not self.climo:
+        #     self.datastd = self.standardize()
         self.datanorm = self.minmax_normalize()
 
         ############################################
         if self.train and not self.climo:
-            return self.datanorm, self.trainmean, self.trainstd, self.trainmin, self.trainmax
+            return self.datanorm, self.trainmin, self.trainmax #self.trainmean, self.trainstd,
         if self.climo:
             return self.datanorm, self.climomin, self.climomax
         else:
@@ -97,9 +100,9 @@ class GetYData():
         self.var = var
         self.norm = norm
         
-        if not self.train:
-            self.trainmean = trainmean
-            self.trainstd = trainstd
+        # if not self.train:
+        #     self.trainmean = trainmean
+        #     self.trainstd = trainstd
         if not self.train and self.norm:
             self.trainmax = trainmax
             self.trainmin = trainmin
@@ -115,33 +118,36 @@ class GetYData():
             data = xr.open_dataset(dir+var+'/'+var+finames[0])[var]
         self.data = data
     
-    def standardize(self): # this will error if only one finame (s needs to be time)
-        if self.train:
-            self.trainmean = self.data.mean('s')
-            self.trainstd = self.data.std('s')
-        return (self.data - self.trainmean)/self.trainstd
+    # def standardize(self): # this will error if only one finame (s needs to be time)
+    #     if self.train:
+    #         self.trainmean = self.data.mean('s')
+    #         self.trainstd = self.data.std('s')
+    #     return (self.data - self.trainmean)/self.trainstd
         
     def minmax_normalize(self): # this will error if only one finame (s needs to be time)
         if self.train:
-            self.trainmin = self.datastd.min('s')
-            self.trainmax = self.datastd.max('s')
-        return((self.datastd - self.trainmin)/(self.trainmax - self.trainmin))  
+            self.trainmin = self.data.min('s')
+            self.trainmax = self.data.max('s')
+        return((self.data - self.trainmin)/(self.trainmax - self.trainmin))
+        #     self.trainmin = self.datastd.min('s')
+        #     self.trainmax = self.datastd.max('s')
+        # return((self.datastd - self.trainmin)/(self.trainmax - self.trainmin))  
 
     def __len__(self):
         return len(self.datanorm)
     
     def __getitem__(self, idx):
-        self.datastd = self.standardize()
+        # self.datastd = self.standardize()
         if self.norm:
             self.datanorm = self.minmax_normalize()
 
         ############################################
         if self.train and not self.norm:
-            return self.datastd, self.trainmean, self.trainstd
+            return self.datastd  # , self.trainmean, self.trainstd
         elif self.train and self.norm:
-            return self.datanorm, self.trainmean, self.trainstd, self.trainmax, self.trainmin
-        elif not self.train and not self.norm:
-            return self.datastd
+            return self.datanorm, self.trainmax, self.trainmin  # self.trainmean, self.trainstd,
+        # elif not self.train and not self.norm:
+        #     return self.datastd
         elif not self.train and self.norm:
             return self.datanorm
         else:

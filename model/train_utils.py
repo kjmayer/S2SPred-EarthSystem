@@ -113,7 +113,7 @@ class NeuralNetwork(BaseModel):
         self.denseblock = dense_block(
             config["hiddens_block"],
             config["hiddens_block_act"],
-            #in_features=config["hiddens_block_in"],
+            in_features=config["hiddens_block_in"],
         )
 
         # Final dense layer
