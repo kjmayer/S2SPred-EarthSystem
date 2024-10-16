@@ -25,18 +25,34 @@
         "batch_size": 32
     },
 
+    "unet_arch_atm": {
+        "type": "unet",
+        "circular_padding": [5, 5, 0, 0],
+        "n_inputchannel": 2,
+        "down_filters": [8,16], 
+        "up_filter_in": 16,
+        "up_filters": [8],
+        "up_final_in": 8,
+        "up_final_filter": 1,
+        "down_kernel_size": [5,5],
+        "up_kernel_size": [5],
+        "up_final_kernel_size": 3,
+        "down_act": ["ReLU","ReLU"],
+        "up_act": ["ReLU"]
+    },
+
     "arch_atm": {
         "type": "cnn",
         "circular_padding": [5, 5, 0, 0],
-        "n_inputchannel": 1,
+        "n_inputchannel": 2,
         "filters": [8], 
         "kernel_size": [5],
         "cnn_act": ["ReLU"],
-        "hiddens_block_in": [29568,2448],
-        "hiddens_block": [2448],
+        "hiddens_block_in": [29568,13824],
+        "hiddens_block": [13824],
         "hiddens_block_act": ["ReLU"],
-        "hiddens_final": 2448,
-        "hiddens_final_in": 2448,
+        "hiddens_final": 13824,
+        "hiddens_final_in": 13824,
         "hiddens_final_act": false
     },
 
@@ -44,7 +60,7 @@
         "type": "Adam",
         "args":{
             "lr": 1e-5,
-            "weight_decay": 0.005,
+            "weight_decay": 0,
             "amsgrad": true
         }
     },

@@ -38,17 +38,19 @@ def conv_couplet(in_channels, out_channels, act_fun, *args, **kwargs):
     return torch.nn.Sequential(
         torch.nn.Conv2d(in_channels, out_channels, *args, **kwargs),
         getattr(torch.nn, act_fun)(),
-        torch.nn.MaxPool2d(kernel_size=(2, 2), ceil_mode=True),
+        torch.nn.MaxPool2d(kernel_size=(2, 2), stride=2, ceil_mode=True),
     )
 
 # not finished:
-# def upconv_couplet(in_channels, out_channels, act_fun, *args, **kwargs):
-#     return torch.nn.Sequential(
-#         torch.nn.ConvTranspose2d(in_channels, out_channels, *args, **kwargs),
-#         getattr(torch.nn, act_fun)(),
-#         torch.nn.UpsamplingBilinear2d(scale_factor=2),
-#     )
-
+def upconv_couplet(in_channels, out_channels, act_fun=False, *args, **kwargs):
+    if not act_fun:
+        return torch.nn.Sequential(
+            torch.nn.ConvTranspose2d(in_channels, out_channels, *args, **kwargs))
+    else:
+        return torch.nn.Sequential(
+            torch.nn.ConvTranspose2d(in_channels, out_channels, *args, **kwargs),
+            getattr(torch.nn, act_fun)(),
+        )
 def dense_block(out_features, act_fun, in_features=None):
     if in_features is None:
         block = [
@@ -67,7 +69,8 @@ def dense_block(out_features, act_fun, in_features=None):
 
 def conv_block(in_channels, out_channels, act_fun, kernel_size):
     block = [
-        conv_couplet(in_channels, out_channels, act_fun, kernel_size, padding="same")
+        conv_couplet(in_channels, out_channels, act_fun, kernel_size,
+                     padding="same", stride = 1)
         for in_channels, out_channels, act_fun, kernel_size in zip(
             [*in_channels],
             [*out_channels],
@@ -77,18 +80,18 @@ def conv_block(in_channels, out_channels, act_fun, kernel_size):
     ]
     return torch.nn.Sequential(*block)
 
-# not finished:
-# def upconv_block():
-#     block = [
-#         upconv_couplet()
-#         for in_channels, out_channels, act_fun, kernel_size in zip(
-#             [*in_channels],
-#             [*out_channels],
-#             [*act_fun],
-#             [*kernel_size],
-#         )
-#     ] 
-#     return torch.nn.Sequential(*block)
+def upconv_block(in_channels, out_channels, act_fun, kernel_size):
+    block = [
+        upconv_couplet(in_channels, out_channels, act_fun, kernel_size,
+                       padding=2, stride=2, output_padding=(1,0))
+        for in_channels, out_channels, act_fun, kernel_size in zip(
+            [*in_channels],
+            [*out_channels],
+            [*act_fun],
+            [*kernel_size],
+        )
+    ] # padding and output_padding are used to get the correct upscale from input size
+    return torch.nn.Sequential(*block)
     
 class NeuralNetwork(BaseModel):
 
@@ -100,38 +103,55 @@ class NeuralNetwork(BaseModel):
 
         # CNN block
         self.conv_block = conv_block(
-            [config["n_inputchannel"], *config["filters"][:-1]],
-            [*config["filters"]],
-            [*config["cnn_act"]],
-            [*config["kernel_size"]],
+            [config["n_inputchannel"], *config["down_filters"][:-1]],
+            [*config["down_filters"]],
+            [*config["down_act"]],
+            [*config["down_kernel_size"]],
         )
 
-        # Flat layer
-        self.flat = torch.nn.Flatten(start_dim=1)
-
-        # Input Dense blocks
-        self.denseblock = dense_block(
-            config["hiddens_block"],
-            config["hiddens_block_act"],
-            in_features=config["hiddens_block_in"],
+        self.upconv_block = upconv_block(
+            [config["up_filter_in"], *config["up_filters"][:-1]],
+            [*config["up_filters"]],
+            [*config["up_act"]],
+            [*config["up_kernel_size"]],
         )
 
-        # Final dense layer
-        self.output = dense_couplet(
-            out_features=config["hiddens_final"],
-            # act_fun=config["hiddens_final_act"],
-            in_features=config["hiddens_final_in"],
+        self.output = upconv_couplet(
+            in_channels = config["up_final_in"],
+            out_channels = config["up_final_filter"],
+            kernel_size = config["up_final_kernel_size"],
+            padding = 1,
+            output_padding = 1,
+            stride = 2,
         )
+        
+        # # Flat layer
+        # self.flat = torch.nn.Flatten(start_dim=1)
+
+        # # Input Dense blocks
+        # self.denseblock = dense_block(
+        #     config["hiddens_block"],
+        #     config["hiddens_block_act"],
+        #     in_features=config["hiddens_block_in"],
+        # )
+
+        # # Final dense layer
+        # self.output = dense_couplet(
+        #     out_features=config["hiddens_final"],
+        #     # act_fun=config["hiddens_final_act"],
+        #     in_features=config["hiddens_final_in"],
+        # )
 
     def forward(self,x):
         
         x = self.pad_lons(x)
         x = self.conv_block(x)
-        x = self.flat(x)
-        x = self.denseblock(x)
+        x = self.upconv_block(x)
+        #x = self.flat(x)
+        #x = self.denseblock(x)
         x = self.output(x)
         
-        return x
+        return x[:,:,:96,5:-5]
         
     
     def predict(self, dataset=None, dataloader=None, batch_size=32, device="gpu"):
