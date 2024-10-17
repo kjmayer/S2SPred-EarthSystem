@@ -24,23 +24,19 @@
         "climo_finame": ["_doymean_ensmean011-020_1950-2014.nc"],
         "batch_size": 32
     },
+    
 
     "unet_arch_atm": {
         "type": "unet",
         "circular_padding": [5, 5, 0, 0],
-        "n_inputchannel": 2,
-        "down_filters": [8,16], 
-        "up_filter_in": 16,
-        "up_filters": [8],
-        "up_final_in": 8,
-        "up_final_filter": 1,
+        "down_filters": [2,32,128], 
+        "up_filters": [128,32,1],
         "down_kernel_size": [5,5],
-        "up_kernel_size": [5],
-        "up_final_kernel_size": 3,
+        "up_kernel_size": [5,3,3],
         "down_act": ["ReLU","ReLU"],
-        "up_act": ["ReLU"]
+        "up_act": ["ReLU","ReLU"]
     },
-
+    
     "arch_atm": {
         "type": "cnn",
         "circular_padding": [5, 5, 0, 0],
@@ -74,7 +70,7 @@
         "save_dir": "saved_models/",
         "early_stopping":{
             "args":{
-                "patience": 3,
+                "patience": 10,
                 "min_delta": 0.001
             }
         }
