@@ -64,7 +64,14 @@ class UNet(BaseModel):
                                   out_channels=config["down_filters"][1],
                                   kernel_size=config["down_kernel_size"][0],
                                   act_fun=config["down_act"][0],
-                                  padding="same",
+                                  padding=config["down_padding"][0],
+                                  stride=1
+                                  )
+        self.conv11 = conv_couplet(in_channels=config["down_filters"][1],
+                                  out_channels=config["down_filters"][1],
+                                  kernel_size=config["down_kernel_size"][0],
+                                  act_fun=config["down_act"][0],
+                                  padding=config["down_padding"][0],
                                   stride=1
                                   )
         
@@ -72,7 +79,37 @@ class UNet(BaseModel):
                                   out_channels=config["down_filters"][2],
                                   kernel_size=config["down_kernel_size"][1],
                                   act_fun=config["down_act"][1],
-                                  padding="same",
+                                  padding=config["down_padding"][1],
+                                  stride=1
+                                  )
+        self.conv22 = conv_couplet(in_channels=config["down_filters"][2],
+                                  out_channels=config["down_filters"][2],
+                                  kernel_size=config["down_kernel_size"][1],
+                                  act_fun=config["down_act"][1],
+                                  padding=config["down_padding"][1],
+                                  stride=1
+                                  )
+
+        # self.conv3 = conv_couplet(in_channels=config["down_filters"][2],
+        #                           out_channels=config["down_filters"][3],
+        #                           kernel_size=config["down_kernel_size"][2],
+        #                           act_fun=config["down_act"][2],
+        #                           padding=config["down_padding"][2],
+        #                           stride=1
+        #                           )
+        # self.conv33 = conv_couplet(in_channels=config["down_filters"][3],
+        #                           out_channels=config["down_filters"][3],
+        #                           kernel_size=config["down_kernel_size"][2],
+        #                           act_fun=config["down_act"][2],
+        #                           padding=config["down_padding"][2],
+        #                           stride=1
+        #                           )
+
+        self.convbottle = conv_couplet(in_channels=config["down_filters"][2],
+                                  out_channels=config["down_filters"][3],
+                                  kernel_size=config["down_kernel_size"][2],
+                                  act_fun=config["down_act"][3],
+                                  padding=config["down_padding"][3],
                                   stride=1
                                   )
 
@@ -81,42 +118,94 @@ class UNet(BaseModel):
             out_channels = config["up_filters"][0],
             kernel_size = config["up_kernel_size"][0],
             act_fun = config["up_act"][0],
-            padding=2,
-            stride=2,
-            output_padding=(1,0)
+            padding=config["up_padding"][0],
+            output_padding=config["up_output_padding"][0],
+            stride=2
         )
+
+        self.upconv11 = conv_couplet(in_channels=config["up_filters"][0],
+                                  out_channels=config["up_filters"][0],
+                                  kernel_size=config["up_kernel_size"][0],
+                                  act_fun=config["up_act"][0],
+                                  padding=config["down_padding"][0], # "same"
+                                  stride=1
+                                  )
 
         self.upconv2 = upconv_couplet(
             in_channels = config["up_filters"][0] + config["down_filters"][2],
             out_channels = config["up_filters"][1],
             kernel_size = config["up_kernel_size"][1],
             act_fun = config["up_act"][1],
-            padding = 1,
-            output_padding = 1,
+            padding = config["up_padding"][1],
+            output_padding = config["up_output_padding"][1],
             stride = 2,
         )
+
+        self.upconv22 = conv_couplet(in_channels=config["up_filters"][1],
+                                  out_channels=config["up_filters"][1],
+                                  kernel_size=config["up_kernel_size"][1],
+                                  act_fun=config["up_act"][1],
+                                  padding=config["down_padding"][0], # "same"
+                                  stride=1
+                                  )
+
+        # self.upconv3 = upconv_couplet(
+        #     in_channels = config["up_filters"][1] + config["down_filters"][2],
+        #     out_channels = config["up_filters"][2],
+        #     kernel_size = config["up_kernel_size"][2],
+        #     act_fun = config["up_act"][2],
+        #     padding = config["up_padding"][2],
+        #     output_padding = config["up_output_padding"][2],
+        #     stride = 2,
+        # )
+
+        # self.upconv33 = conv_couplet(in_channels=config["up_filters"][2],
+        #                           out_channels=config["up_filters"][2],
+        #                           kernel_size=config["up_kernel_size"][2],
+        #                           act_fun=config["up_act"][2],
+        #                           padding=config["down_padding"][0], # "same"
+        #                           stride=1
+        #                           )
 
         self.out = upconv_couplet(
             in_channels = config["up_filters"][1] + config["down_filters"][1],
             out_channels = config["up_filters"][-1],
             kernel_size = config["up_kernel_size"][2],
-            padding = 1,
-            output_padding = 0,
+            padding = config["up_padding"][2],
+            output_padding = config["up_output_padding"][2],
             stride = 1,
         )
 
     def forward(self,x):
         
-        x = self.pad_lons(x)
-        down1 = self.conv1(x) #96,154
-        down2 = self.max_pool2d(down1) #48,77
-        down3 = self.conv2(down2) #48,77
-        down4 = self.max_pool2d(down3) #24,39
+        x = self.pad_lons(x) #96,154
         
-        up1 = self.upconv1(down4) #48,77
-        cat1 = torch.cat([down3, up1], 1)
-        up2 = self.upconv2(cat1)
-        cat2 = torch.cat([down1, up2],1)
+        conv1 = self.conv1(x) 
+        conv11 = self.conv11(conv1)
+        down1 = self.max_pool2d(conv11) #48,77
+        
+        conv2 = self.conv2(down1)
+        conv22 = self.conv22(conv2)
+        down2 = self.max_pool2d(conv22) #24,39
+
+        # conv3 = self.conv3(down2)
+        # conv33 = self.conv33(conv3)
+        # down3 = self.max_pool2d(conv33) #12,
+
+        convbottle = self.convbottle(down2) #24,39
+        
+        up1 = self.upconv1(convbottle) #24,39 
+        upconv11 = self.upconv11(up1) 
+        cat1 = torch.cat([conv22, upconv11], 1)
+        
+        up2 = self.upconv2(cat1) #48,77
+        upconv22 = self.upconv22(up2)
+        cat2 = torch.cat([conv11, upconv22],1)
+
+        # up3 = self.upconv3(cat2) #96,154
+        # upconv33 = self.upconv33(up3)
+        # cat3 = torch.cat([conv11, upconv33],1)
+        
         x = self.out(cat2)
 
         if x.size()[2:] != torch.Size([96, 154]):
