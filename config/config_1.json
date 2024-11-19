@@ -31,13 +31,13 @@
         "circular_padding": [5, 5, 0, 0],
         "down_filters": [2,32,64,128], 
         "up_filters": [64,32,1],
-        "down_kernel_size": [5,5,3,3],
-        "up_kernel_size": [5,3,3,3],
+        "down_kernel_size": [5,3,3],
+        "up_kernel_size": [5,5,3],
         "down_act": ["GELU","GELU","GELU","GELU"],
         "up_act": ["GELU","GELU","GELU"],
         "down_padding": ["same","same","same","same"],
-        "up_padding": [[2,2],[1,1],1,1],
-        "up_output_padding": [[1,0],[2,1],1,0]
+        "up_padding": [2,2,1],
+        "up_output_padding": [[1,0],1,0]
     },
     
     "arch_atm": {
