@@ -9,7 +9,7 @@ class weighted_l1_loss(torch.nn.Module):
     def forward(self, output, target):
         # Calculate weighted L1 loss
         # weighted_loss = torch.abs(output - target) * self.weights
-        norm_weights = self.weights #/torch.mean(self.weights)
+        norm_weights = self.weights#/torch.mean(self.weights)
         weighted_loss = torch.abs(output - target) * norm_weights
         return torch.mean(weighted_loss)
 

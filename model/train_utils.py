@@ -18,34 +18,43 @@ import numpy as np
 import torch
 from base.base_model import BaseModel
 
-def compute_padding(input_shape, output_shape, kernel_size, stride, dilation=1):
-    
-    # Effective kernel size considering dilation
-    effective_kernel_size = (kernel_size - 1) * dilation + 1
-    # Compute total padding needed
-    total_padding = stride * (input_shape - 1) + effective_kernel_size - output_shape
-    # Padding and output padding
-    padding = max(0, total_padding // 2)
-    output_padding = total_padding % 2
-    return padding, output_padding
 
-
+def init_weights(m):
+    """
+    Apply Kaiming or Xavier initialization to Conv2d and ConvTranspose2d layers.
+    """
+    if isinstance(m, (torch.nn.Conv2d, torch.nn.ConvTranspose2d)):
+        # Use Kaiming for ReLU-based activations
+        torch.nn.init.kaiming_normal_(m.weight, nonlinearity='relu')
+        # Alternatively, use Xavier initialization for Sigmoid/Tanh activations
+        # torch.nn.init.xavier_normal_(m.weight)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
+            
 def conv_couplet(in_channels, out_channels, act_fun, *args, **kwargs):
-    return torch.nn.Sequential(
+    block = torch.nn.Sequential(
         torch.nn.Conv2d(in_channels, out_channels, *args, **kwargs),
+        # torch.nn.BatchNorm2d(out_channels),
         getattr(torch.nn, act_fun)()
     )
+    block.apply(init_weights)
+    return block
 
 
 def upconv_couplet(in_channels, out_channels, act_fun=False, *args, **kwargs):
     if not act_fun:
-        return torch.nn.Sequential(
-            torch.nn.ConvTranspose2d(in_channels, out_channels, *args, **kwargs))
-    else:
-        return torch.nn.Sequential(
+        block = torch.nn.Sequential(
             torch.nn.ConvTranspose2d(in_channels, out_channels, *args, **kwargs),
+            # torch.nn.BatchNorm2d(out_channels)
+        )
+    else:
+        block = torch.nn.Sequential(
+            torch.nn.ConvTranspose2d(in_channels, out_channels, *args, **kwargs),
+            # torch.nn.BatchNorm2d(out_channels),
             getattr(torch.nn, act_fun)(),
         )
+    block.apply(init_weights)
+    return block
 
 
 def upconv_block(in_channels, out_channels, act_fun, kernel_size):

@@ -24,6 +24,7 @@ class Trainer(BaseTrainer):
         criterion,
         metric_funcs,
         optimizer,
+        scheduler,
         max_epochs,
         data,
         validation_data,
@@ -35,6 +36,7 @@ class Trainer(BaseTrainer):
             criterion,
             metric_funcs,
             optimizer,
+            scheduler,
             max_epochs,
             config,
         )
@@ -72,7 +74,9 @@ class Trainer(BaseTrainer):
             # Compute the loss and its gradients
             loss = self.criterion(output, target)
             loss.backward()
-
+            
+            # Gradient clipping: Scale gradients if they exceed max_norm
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
             # Adjust learning weights
             self.optimizer.step()
 
@@ -84,7 +88,10 @@ class Trainer(BaseTrainer):
         
         # Run validation
         if self.do_validation:
-            self._validation_epoch(epoch)
+            val_loss = self._validation_epoch(epoch)
+            self.scheduler.step(val_loss)
+            current_lr = self.optimizer.param_groups[0]['lr']
+            print(f"Epoch {epoch+1}: Learning Rate = {current_lr}")
 
     def _validation_epoch(self, epoch):
         """
@@ -109,3 +116,4 @@ class Trainer(BaseTrainer):
                 self.batch_log.update("val_loss", loss.item())
                 for met in self.metric_funcs:
                     self.batch_log.update("val_" + met.__name__, met(output, target))
+        return loss

@@ -27,6 +27,7 @@ class BaseTrainer:
         criterion,
         metric_funcs,
         optimizer,
+        scheduler,
         max_epochs,
         config
     ):
@@ -36,6 +37,7 @@ class BaseTrainer:
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
+        self.scheduler = scheduler
 
         self.max_epochs = max_epochs
         self.early_stopper = EarlyStopping(**config["trainer"]["early_stopping"]["args"])
