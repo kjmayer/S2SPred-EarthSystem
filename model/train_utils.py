@@ -201,31 +201,68 @@ class UNet(BaseModel):
             stride = 1,
         )
 
-    def forward(self,x):
+    def forward(self,x,device="cuda"):
         
         x = self.pad_lons(x) #96,154
-        
+        residual1 = x
         conv1 = self.conv1(x) 
         conv11 = self.conv11(conv1) #96,154
+        if residual1.shape != conv11.shape:
+            #adjust channels to match
+            convadjust = torch.nn.Conv2d(residual1.shape[1], conv11.shape[1], kernel_size=1).to(device)
+            residual1 = convadjust(residual1)
+        conv11 = conv11 + residual1
         down1 = self.max_pool2d(conv11) #48,77
-        
+
+        residual2 = down1
         conv2 = self.conv2(down1)
         conv22 = self.conv22(conv2) #48,77
+        if residual2.shape != conv22.shape:
+            #adjust channels to match
+            convadjust = torch.nn.Conv2d(residual2.shape[1], conv22.shape[1], kernel_size=1).to(device)
+            residual2 = convadjust(residual2)
+        conv22 = conv22 + residual2
         down2 = self.max_pool2d(conv22) #24,39
 
+        residual_bottle = down2
         convbottle = self.convbottle(down2) #24,39
-        
+        if residual_bottle.shape != convbottle.shape:
+            #adjust channels to match
+            convadjust = torch.nn.Conv2d(residual_bottle.shape[1], convbottle.shape[1], kernel_size=1).to(device)
+            residual_bottle = convadjust(residual_bottle)
+        convbottle = convbottle + residual_bottle
+
+        residual_up1 = convbottle
         up1 = self.upconv1(convbottle) #48,77
         upconv11 = self.upconv11(up1) 
+        if residual_up1.shape != upconv11.shape:
+            #adjust channels to match
+            convadjust = torch.nn.Conv2d(residual_up1.shape[1], upconv11.shape[1], kernel_size=1).to(device)
+            residual_up1 = convadjust(residual_up1)
+            #adjust image size to match
+            residual_up1 = torch.nn.functional.interpolate(residual_up1,
+                                                           size=upconv11.shape[2:],
+                                                           mode='bilinear', align_corners=False)
+        upconv11 = upconv11 + residual_up1
         cat1 = torch.cat([conv22, upconv11], 1) #48,77
-        
+
+        residual_up2 = cat1
         up2 = self.upconv2(cat1) #96,154
         upconv22 = self.upconv22(up2)
+        if residual_up2.shape != upconv22.shape:
+            #adjust channels to match
+            convadjust = torch.nn.Conv2d(residual_up2.shape[1], upconv22.shape[1], kernel_size=1).to(device)
+            residual_up2 = convadjust(residual_up2)
+            #adjust image size to match
+            residual_up2 = torch.nn.functional.interpolate(residual_up2,
+                                                           size=upconv22.shape[2:],
+                                                           mode='bilinear', align_corners=False)
+        upconv22 = upconv22 + residual_up2
         cat2 = torch.cat([conv11, upconv22],1) #96,154
 
         x = self.out(cat2)
 
-        if x.size()[2:] != torch.Size([96, 154]):
+        if x.size()[2:] != torch.Size([32,154]):#[96, 154]):
             raise ValueError("output of UNet needs to be [batch, filter, 96, 154]. It is currently "+str(x.size()))
         else:
             return x[:,:,:,5:-5]

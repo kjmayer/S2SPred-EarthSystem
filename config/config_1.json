@@ -22,15 +22,15 @@
             "_anom_020_1950-2014.nc"
         ],
         "climo_finame": ["_doymean_ensmean011-020_1950-2014.nc"],
-        "batch_size": 50
+        "batch_size": 32
     },
     
 
     "unet_arch_atm": {
         "type": "unet",
         "circular_padding": [5, 5, 0, 0],
-        "down_filters": [2,32,64,128], 
-        "up_filters": [64,32,1],
+        "down_filters": [2,128,256,512], 
+        "up_filters": [256,128,1],
         "down_kernel_size": [5,3,3],
         "up_kernel_size": [5,5,3],
         "down_act": ["ReLU","ReLU","ReLU","ReLU"],
@@ -58,29 +58,29 @@
     "optimizer": {
         "adam": "Adam",
         "adam_args":{
-            "lr": 0.01,
+            "lr": 0.0001,
             "weight_decay": 0,
             "amsgrad": true
         },
         "sgd": "SGD",
         "sgd_args":{
             "lr": 0.01,
-            "weight_decay": 0,
+            "weight_decay": 0.0,
             "momentum": 0.9,
             "nesterov": true
         }
     },
     
-    "criterion": "weighted_l1_loss",
+    "criterion": "weighted_l1_loss", 
 
     "metrics": ["MAE","MSE"],
 
     "trainer": {
-        "max_epochs": 5,
+        "max_epochs": 50,
         "save_dir": "saved_models/",
         "early_stopping":{
             "args":{
-                "patience": 5,
+                "patience": 10,
                 "min_delta": 0.001
             }
         }

@@ -77,6 +77,7 @@ class Trainer(BaseTrainer):
             
             # Gradient clipping: Scale gradients if they exceed max_norm
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
+            
             # Adjust learning weights
             self.optimizer.step()
 
@@ -110,10 +111,10 @@ class Trainer(BaseTrainer):
                 )
 
                 output = self.model(input)
-                loss = self.criterion(output, target)
+                val_loss = self.criterion(output, target)
 
                 # Log the results
-                self.batch_log.update("val_loss", loss.item())
+                self.batch_log.update("val_loss", val_loss.item())
                 for met in self.metric_funcs:
                     self.batch_log.update("val_" + met.__name__, met(output, target))
-        return loss
+        return val_loss
