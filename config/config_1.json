@@ -22,7 +22,7 @@
             "_anom_020_1950-2014.nc"
         ],
         "climo_finame": ["_doymean_ensmean011-020_1950-2014.nc"],
-        "batch_size": 32
+        "batch_size": 100
     },
     
 

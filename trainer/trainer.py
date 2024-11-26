@@ -76,7 +76,7 @@ class Trainer(BaseTrainer):
             loss.backward()
             
             # Gradient clipping: Scale gradients if they exceed max_norm
-            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
             
             # Adjust learning weights
             self.optimizer.step()
