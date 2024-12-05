@@ -60,7 +60,7 @@ def upconv_couplet(in_channels, out_channels, act_fun=False, *args, **kwargs):
 def upconv_block(in_channels, out_channels, act_fun, kernel_size):
     block = [
         upconv_couplet(in_channels, out_channels, act_fun, kernel_size,
-                       padding=2, stride=2, output_padding=(1,0))
+                       padding=2, stride=2, output_padding=(1,0)) 
         for in_channels, out_channels, act_fun, kernel_size in zip(
             [*in_channels],
             [*out_channels],
@@ -75,10 +75,7 @@ class UNet(BaseModel):
 
     def __init__(self, config):
         super().__init__()
-
-        image_shape = [96,154] # [H,W]
-        shape1 = [48,77]
-        shape2 = [24,39]
+        
         self.config = config
         self.pad_lons = torch.nn.CircularPad2d(config["circular_padding"])
         self.max_pool2d = torch.nn.MaxPool2d(kernel_size=(2, 2), stride=2, ceil_mode=True)
@@ -121,29 +118,15 @@ class UNet(BaseModel):
                                   stride=1
                                   )
 
-        # padding1_h, output_padding1_h = compute_padding(input_shape=shape2[0],
-        #                                             output_shape=shape1[0],
-        #                                             kernel_size=config["up_kernel_size"][1],
-        #                                             stride=2)
-        # padding1_w, output_padding1_w = compute_padding(input_shape=shape2[1],
-        #                                             output_shape=shape1[1],
-        #                                             kernel_size=config["up_kernel_size"][1],
-        #                                             stride=2)
-        
-
-        # print(padding1_w, padding1_h)
-        # print(output_padding1_w, output_padding1_h)
-        
         self.upconv1 = upconv_couplet(
             in_channels = config["down_filters"][-1],
             out_channels = config["up_filters"][0],
             kernel_size = config["up_kernel_size"][0],
             act_fun = config["up_act"][0],
-            padding=config["up_padding"][0],#[padding1_h,padding1_w], #
-            output_padding=config["up_output_padding"][0],#[output_padding1_h,output_padding1_w], #
+            padding=config["up_padding"][0],
+            output_padding=config["up_output_padding"][0],
             stride=2
         )
-
         self.upconv11 = conv_couplet(in_channels=config["up_filters"][0],
                                   out_channels=config["up_filters"][0],
                                   kernel_size=config["up_kernel_size"][0],
@@ -152,27 +135,16 @@ class UNet(BaseModel):
                                   stride=1
                                   )
         
-        # padding2_h, output_padding2_h = compute_padding(input_shape=shape1[0],
-        #                                             output_shape=image_shape[0],
-        #                                             kernel_size=config["up_kernel_size"][1],
-        #                                             stride=2)
-        # padding2_w, output_padding2_w = compute_padding(input_shape=shape1[1],
-        #                                             output_shape=image_shape[1],
-        #                                             kernel_size=config["up_kernel_size"][1],
-        #                                             stride=2)
-
-        # print(padding2_w, padding2_h)
-        # print(output_padding2_w, output_padding2_h)
         self.upconv2 = upconv_couplet(
             in_channels = config["up_filters"][0] + config["down_filters"][2],
             out_channels = config["up_filters"][1],
             kernel_size = config["up_kernel_size"][1],
             act_fun = config["up_act"][1],
-            padding = config["up_padding"][1],#[padding2_h,padding2_w],#
-            output_padding = config["up_output_padding"][1], #[output_padding2_h,output_padding2_w],#
-            stride = 2,
+            padding = config["up_padding"][1],
+            output_padding = config["up_output_padding"][1], 
+            stride = 2
         )
-
+        
         self.upconv22 = conv_couplet(in_channels=config["up_filters"][1],
                                   out_channels=config["up_filters"][1],
                                   kernel_size=config["up_kernel_size"][1],
@@ -181,26 +153,15 @@ class UNet(BaseModel):
                                   stride=1
                                   )
 
-        # padding3_h, output_padding3_h = compute_padding(input_shape=image_shape[0],
-        #                                             output_shape=image_shape[0],
-        #                                             kernel_size=config["up_kernel_size"][2],
-        #                                             stride=1)
-        # padding3_w, output_padding3_w = compute_padding(input_shape=image_shape[1],
-        #                                             output_shape=image_shape[1],
-        #                                             kernel_size=config["up_kernel_size"][2],
-        #                                             stride=1)
-
-        # print(padding3_w, padding3_h)
-        # print(output_padding3_w, output_padding3_h)
         self.out = upconv_couplet(
             in_channels = config["up_filters"][1] + config["down_filters"][1],
             out_channels = config["up_filters"][-1],
             kernel_size = config["up_kernel_size"][2],
-            padding = config["up_padding"][2],#[padding3_h,padding3_w],#config["up_padding"][2],
-            output_padding = config["up_output_padding"][2],#[output_padding3_h,output_padding3_w],#
+            padding = config["up_padding"][2],
+            output_padding = config["up_output_padding"][2],
             stride = 1,
         )
-
+                
     def forward(self,x,device="cuda"):
         
         x = self.pad_lons(x) #96,154
@@ -364,10 +325,10 @@ class ConvNeuralNetwork(BaseModel):
 
         # CNN block
         self.conv_block = conv_block(
-            [config["n_inputchannel"], *config["down_filters"][:-1]],
-            [*config["down_filters"]],
-            [*config["down_act"]],
-            [*config["down_kernel_size"]],
+            [config["n_inputchannel"], *config["filters"][:-1]],
+            [*config["filters"]],
+            [*config["cnn_act"]],
+            [*config["kernel_size"]],
         )
         
         # Flat layer

@@ -22,14 +22,13 @@
             "_anom_020_1950-2014.nc"
         ],
         "climo_finame": ["_doymean_ensmean011-020_1950-2014.nc"],
-        "batch_size": 100
+        "batch_size": 8
     },
-    
 
     "unet_arch_atm": {
         "type": "unet",
         "circular_padding": [5, 5, 0, 0],
-        "down_filters": [2,128,256,512], 
+        "down_filters": [4,128,256,512], 
         "up_filters": [256,128,1],
         "down_kernel_size": [5,3,3],
         "up_kernel_size": [5,5,3],
@@ -39,20 +38,36 @@
         "up_padding": [2,2,1],
         "up_output_padding": [[1,0],1,0]
     },
+
     
     "arch_atm": {
         "type": "cnn",
         "circular_padding": [5, 5, 0, 0],
-        "n_inputchannel": 2,
+        "n_inputchannel": 4,
         "filters": [8], 
         "kernel_size": [5],
         "cnn_act": ["ReLU"],
-        "hiddens_block_in": [29568,13824],
+        "hiddens_block_in": [118272,13824],
         "hiddens_block": [13824],
         "hiddens_block_act": ["ReLU"],
         "hiddens_final": 13824,
         "hiddens_final_in": 13824,
         "hiddens_final_act": false
+    },
+
+    "arch_vit_atm": {
+        "type": "vit",
+        "img_height": 96,
+        "img_width": 144,
+        "patch_height": 3,
+        "patch_width": 3,
+        "num_channels":4,
+        "num_outputs":13824,
+        "dim":128,
+        "depth":6,
+        "heads":8,
+        "mlp_dim":256,
+        "dropout":0.1
     },
 
     "optimizer": {

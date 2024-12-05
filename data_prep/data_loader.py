@@ -13,7 +13,10 @@ def lead_shift(data,lead,forward=True):
     return data_shift
 
 def concat_input(X,Y,dim_name='features'):
-    inputs = xr.concat([X,Y],dim=dim_name).transpose('s',dim_name, 'lat', 'lon')
+    firstdim = X.dims[0]
+    thirddim = X.dims[-2]
+    forthdim = X.dims[-1]
+    inputs = xr.concat([X,Y],dim=dim_name).transpose(firstdim,dim_name,thirddim,forthdim)
     return inputs
         
 class GetXData():
@@ -155,9 +158,11 @@ class GetYData():
 
 ############################################
 class CustomDataset(torch.utils.data.Dataset):
-    def __init__(self, X, y):
+    def __init__(self, X, y, lat_map, lon_map):
         self.X = torch.tensor(X, dtype = torch.float32)
         self.y = torch.tensor(y, dtype = torch.float32)
+        self.lat_map = torch.tensor(lat_map, dtype = torch.float32).unsqueeze(0)
+        self.lon_map = torch.tensor(lon_map, dtype = torch.float32).unsqueeze(0)
     
     def __len__(self):
         return len(self.X)
@@ -165,4 +170,15 @@ class CustomDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         input = self.X[idx]
         target = self.y[idx]
-        return input, target
+
+        lat_map = self.lat_map  # Shape (1, H, W)
+        lon_map = self.lon_map  # Shape (1, H, W)
+        input_wlat = torch.cat((input, lat_map), dim=0)  # Shape (C+1, H, W)
+        input_wlatlon = torch.cat((input_wlat, lon_map), dim=0)  # Shape (C+2, H, W)
+        
+        return input_wlatlon, target
+
+
+
+
+
