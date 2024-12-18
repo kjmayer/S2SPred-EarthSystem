@@ -22,21 +22,21 @@
             "_anom_020_1950-2014.nc"
         ],
         "climo_finame": ["_doymean_ensmean011-020_1950-2014.nc"],
-        "batch_size": 8
+        "batch_size": 100
     },
 
     "unet_arch_atm": {
         "type": "unet",
         "circular_padding": [5, 5, 0, 0],
-        "down_filters": [4,128,256,512], 
-        "up_filters": [256,128,1],
+        "down_filters": [4,8,16,32], 
+        "up_filters": [16,8,1],
         "down_kernel_size": [5,3,3],
         "up_kernel_size": [5,5,3],
         "down_act": ["ReLU","ReLU","ReLU","ReLU"],
         "up_act": ["ReLU","ReLU","ReLU"],
         "down_padding": ["same","same","same","same"],
         "up_padding": [2,2,1],
-        "up_output_padding": [[1,0],1,0]
+        "up_output_padding": [1,1,0]
     },
 
     
@@ -59,15 +59,15 @@
         "type": "vit",
         "img_height": 96,
         "img_width": 144,
-        "patch_height": 3,
-        "patch_width": 3,
+        "patch_height": 16,
+        "patch_width": 16,
         "num_channels":4,
         "num_outputs":13824,
-        "dim":128,
-        "depth":6,
-        "heads":8,
+        "dim":512,
+        "depth":4,
+        "heads":4,
         "mlp_dim":256,
-        "dropout":0.1
+        "dropout":0.0
     },
 
     "optimizer": {
@@ -79,23 +79,23 @@
         },
         "sgd": "SGD",
         "sgd_args":{
-            "lr": 0.01,
+            "lr": 0.001,
             "weight_decay": 0.0,
             "momentum": 0.9,
             "nesterov": true
         }
     },
     
-    "criterion": "weighted_l1_loss", 
+    "criterion": "L1Loss", 
 
-    "metrics": ["MAE","MSE"],
+    "metrics": ["MSE"],
 
     "trainer": {
-        "max_epochs": 50,
+        "max_epochs": 10,
         "save_dir": "saved_models/",
         "early_stopping":{
             "args":{
-                "patience": 10,
+                "patience": 5,
                 "min_delta": 0.001
             }
         }

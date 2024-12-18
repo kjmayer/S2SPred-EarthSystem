@@ -1,5 +1,5 @@
 import torch
-
+import numpy as np
 
 class weighted_l1_loss(torch.nn.Module):
     def __init__(self, weights):
@@ -12,6 +12,11 @@ class weighted_l1_loss(torch.nn.Module):
         norm_weights = self.weights #/torch.mean(self.weights)
         weighted_loss = torch.abs(output - target) * norm_weights
         return torch.mean(weighted_loss)
+
+def weighted_l1_loss_tf(target, output, weights):
+    norm_weights = weights#/np.mean(self.weights)
+    weighted_loss = np.abs(output - target) * norm_weights
+    return np.mean(weighted_loss)
 
 class weighted_acc_loss(torch.nn.Module):
     def __init__(self,weights):
