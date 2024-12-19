@@ -25,18 +25,34 @@
         "batch_size": 100
     },
 
-    "unet_arch_atm": {
+    "unet_arch_atm_lead1": {
         "type": "unet",
         "circular_padding": [5, 5, 0, 0],
         "down_filters": [4,8,16,32], 
         "up_filters": [16,8,1],
-        "down_kernel_size": [5,3,3],
-        "up_kernel_size": [5,5,3],
+        "down_kernel_size": [3,3,3],
+        "up_kernel_size": [3,3,3],
         "down_act": ["ReLU","ReLU","ReLU","ReLU"],
         "up_act": ["ReLU","ReLU","ReLU"],
         "down_padding": ["same","same","same","same"],
-        "up_padding": [2,2,1],
-        "up_output_padding": [1,1,0]
+        "up_padding": [[0,1],0,1],
+        "up_output_padding": [[0,1],0,0],
+        "residual_layers": false
+    },
+    
+    "unet_arch_atm_lead7": {
+        "type": "unet",
+        "circular_padding": [5, 5, 0, 0],
+        "down_filters": [4,8,16,32], 
+        "up_filters": [16,8,1],
+        "down_kernel_size": [3,3,3],
+        "up_kernel_size": [3,3,3],
+        "down_act": ["ReLU","ReLU","ReLU","ReLU"],
+        "up_act": ["ReLU","ReLU","ReLU"],
+        "down_padding": ["same","same","same","same"],
+        "up_padding": [[0,1],0,1],
+        "up_output_padding": [[0,1],0,0],
+        "residual_layers": false
     },
 
     

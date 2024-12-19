@@ -19,15 +19,16 @@ def weighted_l1_loss_tf(target, output, weights):
     return np.mean(weighted_loss)
 
 class weighted_acc_loss(torch.nn.Module):
+    # UNet didn't train well with this loss
     def __init__(self,weights):
         super(weighted_acc_loss,self).__init__()
         self.weights = weights
     def forward(self, output, target):
-        w = self.weights/torch.mean(self.weights)
+        w = self.weights#/torch.mean(self.weights)
         num = torch.sum(w * output * target)
         denom = torch.sqrt(torch.sum(w * output ** 2) * torch.sum(w * target ** 2))
-        acc = num/denom
-        return acc
+        acc_loss = 1 - (num/denom)
+        return acc_loss
 
 # Functions to evaluate the skill of model while training
 # have to send to cpu and convert to numpy for code in base_trainer.py
